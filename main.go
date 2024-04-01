@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/alecthomas/kong"
 	"github.com/mglnsk/teamscli/cmd"
@@ -16,13 +16,15 @@ var CLI struct {
 }
 
 func main() {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("fatal error config file: %w", err))
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Println("ERROR reading config file ./config.yaml:")
+		log.Fatal(err)
 	}
+
 	ctx := kong.Parse(&CLI)
 	err = ctx.Run()
 	ctx.FatalIfErrorf(err)

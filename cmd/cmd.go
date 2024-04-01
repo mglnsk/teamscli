@@ -8,19 +8,17 @@ import (
 	"github.com/mglnsk/teamscli/auth"
 	"github.com/mglnsk/teamscli/extractor"
 	"github.com/mglnsk/teamscli/feed"
+	"github.com/spf13/viper"
 
 	"github.com/alecthomas/kong"
 )
 
 type UpdateCmd struct {
-	TenantID    string `help:"ID of your Teams provider e.g aaaaaaaa-d714-4a1f-8101-eeeeeeeeeeee" required:""`
-	ID          string `help:"Channel id from teams e.g. 11:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"`
 	RefreshFile string `help:"A file used for caching refresh tokens as they are issued" required:""`
 	OutFile     string `help:"Output filename for channel json" required:""`
 }
 
 type RefreshCmd struct {
-	TenantID    string `help:"ID of your Teams provider e.g aaaaaaaa-d714-4a1f-8101-eeeeeeeeeeee" required:""`
 	RefreshFile string `help:"A file used for caching refresh tokens as they are issued" required:""`
 }
 
@@ -37,7 +35,6 @@ type ExtractCmd struct {
 }
 
 type DownloadCmd struct {
-	TenantID      string `help:"ID of your Teams provider e.g aaaaaaaa-d714-4a1f-8101-eeeeeeeeeeee" required:""`
 	RefreshFile   string `help:"A file used for caching refresh tokens as they are issued" required:""`
 	DownloadImage string `help:"Link for an image to download"`
 	OutFile       string `help:"Output filename for channel json" required:""`
@@ -50,7 +47,7 @@ func (dcmd *DownloadCmd) Run(ctx *kong.Context) error {
 			return err
 		}
 		refresh := string(refb)
-		skype_token := auth.GetSkypeToken(dcmd.TenantID, refresh)
+		skype_token := auth.GetSkypeToken(refresh)
 		picture_b, err := feed.DownloadImage(dcmd.DownloadImage, skype_token)
 		if err != nil {
 			return err
@@ -67,14 +64,15 @@ func (ucmd *UpdateCmd) Run(ctx *kong.Context) error {
 	}
 	refresh := string(refb)
 
-	bearer, new_refresh := auth.GetTeamsToken(ucmd.TenantID, refresh)
+	bearer, new_refresh := auth.GetTeamsToken(refresh)
 	err = os.WriteFile(ucmd.RefreshFile, []byte(new_refresh), 0644)
 	if err != nil {
 		return err
 	}
 
 	//? Channel info
-	info, err := feed.GetChannelInfo(ucmd.ID, bearer)
+	channelID := viper.GetString("channel")
+	info, err := feed.GetChannelInfo(channelID, bearer)
 	if err != nil {
 		return err
 	}
@@ -88,7 +86,7 @@ func (rcmd *RefreshCmd) Run(ctx *kong.Context) error {
 		return err
 	}
 	refresh := string(refb)
-	_, new_refresh := auth.GetTeamsToken(rcmd.TenantID, refresh)
+	_, new_refresh := auth.GetTeamsToken(refresh)
 	err = os.WriteFile(rcmd.RefreshFile, []byte(new_refresh), 0644)
 	return err
 }

@@ -13,10 +13,12 @@ import (
 )
 
 func Oauth2Request(scope, refreshToken string) (string, string, error) {
-	tenantID := viper.Get("tenant")
+	tenantID := viper.GetString("tenant")
+	clientID := viper.GetString("client")
+
 	oauth := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
 	data := url.Values{
-		"client_id":     {"AAa-aaaa-bbbb-bbb-78787346"}, // TODO replace with your client ID
+		"client_id":     {clientID}, // TODO replace with your client ID
 		"scope":         {scope},
 		"grant_type":    {"refresh_token"},
 		"client_info":   {"1"},
@@ -60,13 +62,13 @@ func Oauth2Request(scope, refreshToken string) (string, string, error) {
 	return access_token, new_refresh_token, nil
 }
 
-func GetTeamsToken(tenantID, refresh string) (access_token, refresh_token string) {
-	access_token, refresh_token, _ = Oauth2Request(tenantID, "https://chatsvcagg.teams.microsoft.com/.default openid profile offline_access", refresh)
+func GetTeamsToken(refresh string) (access_token, refresh_token string) {
+	access_token, refresh_token, _ = Oauth2Request("https://chatsvcagg.teams.microsoft.com/.default openid profile offline_access", refresh)
 	return
 }
 
-func GetSkypeToken(tenantID, refresh string) string {
-	access_token, _, _ := Oauth2Request(tenantID, "https://api.spaces.skype.com/.default openid profile offline_access", refresh)
+func GetSkypeToken(refresh string) string {
+	access_token, _, _ := Oauth2Request("https://api.spaces.skype.com/.default openid profile offline_access", refresh)
 
 	skype_authz := "https://teams.microsoft.com/api/authsvc/v1.0/authz"
 
