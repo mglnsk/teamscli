@@ -8,9 +8,12 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
-func Oauth2Request(tenantID, scope, refreshToken string) (string, string, error) {
+func Oauth2Request(scope, refreshToken string) (string, string, error) {
+	tenantID := viper.Get("tenant")
 	oauth := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
 	data := url.Values{
 		"client_id":     {"AAa-aaaa-bbbb-bbb-78787346"}, // TODO replace with your client ID
